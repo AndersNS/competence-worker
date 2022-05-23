@@ -1,0 +1,25 @@
+name = "variantcompetency"
+workers_dev = true
+
+main = "build/worker/shim.mjs"
+compatibility_date = "2022-01-20"
+kv_namespaces = [
+  { binding = "main", id = "ba4fe10a20c9495dbb958ff8f65c020e", preview_id = "c68f45d5d1574b79953913fc34c94391" },
+]
+
+[vars]
+WORKERS_RS_VERSION = "0.0.9"
+
+[build]
+command = "cargo install -q worker-build && worker-build --release"
+
+# TODO durable objects costs money :( 
+# [durable_objects]
+# bindings = [
+#   { name = "competencies", class_name = "Competencies" }, # the `class_name` uses the Rust struct identifier name
+# ]
+
+
+# [[migrations]]
+# tag = "v1"                     # Should be unique for each entry
+# new_classes = ["Competencies"] # Array of new classes
