@@ -31,43 +31,6 @@ pub struct CompetencyRating {
     pub rating: Rating,
 }
 
-#[allow(unused)]
-#[durable_object]
-pub struct Competencies {
-    competencies: Vec<CompetencyRating>,
-    state: State,
-    env: Env, // access `Env` across requests, use inside `fetch`
-}
-
-#[durable_object]
-impl DurableObject for Competencies {
-    fn new(state: State, env: Env) -> Self {
-        Self {
-            state,
-            env,
-            competencies: vec![],
-        }
-    }
-
-    async fn fetch(&mut self, req: Request) -> Result<Response> {
-        match req.method() {
-            Method::Get => Response::ok(serde_json::to_string(&self.competencies)?),
-            Method::Post => {
-                self.competencies.push(CompetencyRating {
-                    discipline_id: 1,
-                    path_id: 1,
-                    area_id: 1,
-                    comp_id: 1,
-                    rating: Rating::Interest(4),
-                });
-
-                Response::ok(serde_json::to_string(&self.competencies)?)
-            }
-            _ => Response::error("Method not allowed", 401),
-        }
-    }
-}
-
 fn get_cors() -> Cors {
     let cors = Cors::default().with_origins(vec!["*"]).with_methods(vec![
         Method::Get,
@@ -96,15 +59,6 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
     // Environment bindings like KV Stores, Durable Objects, Secrets, and Variables.
     router
         .get("/", |_, _| Response::ok("Hello from Workers!"))
-        .on_async("/competencyrating/:id", |req, ctx| async move {
-            if let Some(id) = ctx.param("id") {
-                let namespace = ctx.durable_object("competencies")?;
-                let stub = namespace.id_from_name(id)?.get_stub()?;
-                return stub.fetch_with_request(req).await;
-            }
-
-            Response::error("Bad request", 400)
-        })
         .get_async("/competency/:id", |_req, ctx| async move {
             if let Some(id) = ctx.param("id") {
                 let namespace = ctx.kv("main")?;
