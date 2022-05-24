@@ -64,11 +64,9 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                 let namespace = ctx.kv("main")?;
                 let value = namespace.get(id).text().await?;
                 if let Some(val) = value {
-                    let cors = get_cors();
-                    return Response::ok(val)?.with_cors(&cors);
+                    return Response::ok(val)?.with_cors(&get_cors());
                 }
-                let cors = get_cors();
-                return Response::error("Not found", 404)?.with_cors(&cors);
+                return Response::error("Not found", 404)?.with_cors(&get_cors());
             }
 
             Response::error("Bad request", 400)
@@ -80,8 +78,7 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
                 let ratings: Vec<CompetencyRating> = serde_json::from_str(&(req.text().await?))?;
 
                 kv.put(id, ratings).unwrap().execute().await?;
-                let cors = get_cors();
-                return Response::ok("Ok")?.with_cors(&cors);
+                return Response::ok("Ok")?.with_cors(&get_cors());
             }
 
             Response::error("Bad request", 400)
